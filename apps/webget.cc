@@ -13,6 +13,19 @@ void get_URL( const string& host, const string& path )
 {
   debug( "Function called: get_URL( \"{}\", \"{}\" )", host, path );
   debug( "get_URL() function not yet implemented" );
+  Address address { host, "http" };
+  TCPSocket socket {};
+  socket.connect( address );
+  string request = "GET " + path + " HTTP/1.0\r\n"
+                  + "Host: " + host + "\r\n"
+                  + "Connection: close\r\n"
+                  + "\r\n";
+  socket.write_all( request );
+  string buffer;
+  while ( !socket.eof() ) {
+    socket.read( buffer );
+    cout << buffer;
+  }
 }
 } // namespace
 
