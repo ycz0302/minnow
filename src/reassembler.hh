@@ -1,6 +1,7 @@
 #pragma once
 
 #include "byte_stream.hh"
+#include <deque>
 
 class Reassembler
 {
@@ -41,6 +42,16 @@ public:
   // Access output stream writer, but const-only (can't write from outside)
   const Writer& writer() const { return output_.writer(); }
 
+  // [start, end) is the range of bytes that the Reassembler is currently waiting for.
+  // The next byte to write is at index next_pos().
+  uint64_t start() const { return this->output_.reader().bytes_popped(); }
+  uint64_t next_pos() const { return this->output_.writer().bytes_pushed(); }
+  uint64_t end() const { return this->output_.writer().available_capacity() + this->next_pos(); }
 private:
   ByteStream output_;
+  std::deque<std::pair<char, bool>> dq {};
+  uint64_t head {0};
+  uint64_t bytes_pending {0};
+  bool last_tag {false};
+  uint64_t last_pos {};
 };
