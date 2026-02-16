@@ -2,6 +2,7 @@
 
 #include "byte_stream.hh"
 #include <deque>
+#include <optional>
 
 class Reassembler
 {
@@ -47,6 +48,8 @@ public:
   uint64_t start() const { return this->output_.reader().bytes_popped(); }
   uint64_t next_pos() const { return this->output_.writer().bytes_pushed(); }
   uint64_t end() const { return this->output_.writer().available_capacity() + this->next_pos(); }
+
+  const std::optional<uint64_t> seq_len() const { if (last_tag) return last_pos; return std::nullopt; } 
 private:
   ByteStream output_;
   std::deque<std::pair<char, bool>> dq {};

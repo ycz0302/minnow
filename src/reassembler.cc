@@ -5,8 +5,8 @@ using namespace std;
 
 void Reassembler::insert(uint64_t first_index, string data, bool is_last_substring) {
   if (is_last_substring) {
-    last_tag = true;
-    last_pos = first_index + data.size();
+    this->last_tag = true;
+    this->last_pos = first_index + data.size();
   }
   if (first_index >= this->end()) {
     return;
@@ -19,7 +19,7 @@ void Reassembler::insert(uint64_t first_index, string data, bool is_last_substri
     need = first_index + data.size() - this->head;
   }
   if (need > this->dq.size()) {
-    dq.resize(need, make_pair('?', false));
+    this->dq.resize(need, make_pair('?', false));
   }
   for (uint64_t i = 0; i < data.size(); i++) {
     if (this->head > first_index + i) {
@@ -39,7 +39,7 @@ void Reassembler::insert(uint64_t first_index, string data, bool is_last_substri
     this->bytes_pending--;
     this->output_.writer().push({c});
     this->head++;
-    dq.pop_front();
+    this->dq.pop_front();
   }
   if (last_tag && this->next_pos() == last_pos) {
     this->output_.writer().close();
