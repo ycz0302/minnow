@@ -102,7 +102,7 @@ void TCPMinnowSocket<AdaptT>::_initialize_TCP( const TCPConfig& config )
       std::string data;
       data.resize( _tcp->outbound_writer().available_capacity() );
       _thread_data.read( data );
-      _tcp->outbound_writer().push( move( data ) );
+      _tcp->outbound_writer().push(data);
 
       if ( _thread_data.eof() ) {
         _tcp->outbound_writer().close();

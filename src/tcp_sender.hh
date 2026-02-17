@@ -5,14 +5,15 @@
 #include "tcp_sender_message.hh"
 
 #include <functional>
+#include <queue>
 
 class TCPSender
 {
 public:
   /* Construct TCP sender with given default Retransmission Timeout and possible ISN */
-  TCPSender( ByteStream&& input, Wrap32 isn, uint64_t initial_RTO_ms )
-    : input_( std::move( input ) ), isn_( isn ), initial_RTO_ms_( initial_RTO_ms )
-  {}
+  TCPSender(ByteStream&& input, Wrap32 isn, uint64_t initial_RTO_ms)
+    : input_(std::move(input)), isn_(isn), initial_RTO_ms_(initial_RTO_ms), RTO(initial_RTO_ms)
+    {}
 
   /* Generate an empty TCPSenderMessage */
   TCPSenderMessage make_empty_message() const;
@@ -36,10 +37,20 @@ public:
   const Reader& reader() const { return input_.reader(); }
   Writer& writer() { return input_.writer(); }
 
+  uint64_t abs_seqno() const { return reader().bytes_popped() + SYN_tag + FIN_tag; }
+
 private:
   Reader& reader() { return input_.reader(); }
 
   ByteStream input_;
   Wrap32 isn_;
   uint64_t initial_RTO_ms_;
+  uint64_t retran_count {0};
+  uint64_t flight_count {0};
+  uint64_t RTO;
+  uint64_t timer {0};
+  uint64_t window {1};
+  std::queue<TCPSenderMessage> q {};
+  bool SYN_tag {false};
+  bool FIN_tag {false};
 };

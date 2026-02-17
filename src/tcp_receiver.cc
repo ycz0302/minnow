@@ -3,7 +3,7 @@
 
 using namespace std;
 
-void TCPReceiver::receive(TCPSenderMessage message) {
+void TCPReceiver::receive(const TCPSenderMessage &message) {
   if (message.RST) {
     this->reassembler_.reader().set_error();
     return;
