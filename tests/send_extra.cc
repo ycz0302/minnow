@@ -708,6 +708,76 @@ int main()
       test.execute( ExpectSeqno { isn + bigstring.size() + 2 } );
       test.execute( ExpectSeqnosInFlight { 0 } );
     }
+
+    // credit: Jad Bitar
+    {
+      TCPConfig cfg;
+      const Wrap32 isn( UINT32_MAX - 10 );
+      cfg.isn = isn;
+      TCPSenderTestHarness test { "Sender's outgoing sequence number wraps around", cfg };
+      // syn
+      test.execute( Push {} );
+      test.execute( ExpectMessage {}.with_syn( true ).with_payload_size( 0 ).with_seqno( isn ) );
+      test.execute( ExpectSeqno { isn + 1 } ); // seqno is UINT32_MAX - 9
+      test.execute( ExpectSeqnosInFlight { 1 } );
+      // receiver acks SYN with large window
+      test.execute( AckReceived { Wrap32 { isn + 1 } }.with_win( 100 ) );
+      test.execute( ExpectSeqnosInFlight { 0 } );
+      // we send 30 bytes of data in three segments
+      test.execute( Push { string( 10, 'a' ) } );
+      test.execute( ExpectMessage {}
+                      .with_no_flags()
+                      .with_payload_size( 10 )
+                      .with_data( string( 10, 'a' ) )
+                      .with_seqno( isn + 1 ) );
+      test.execute( Push { string( 10, 'b' ) } );
+      test.execute( ExpectMessage {}
+                      .with_no_flags()
+                      .with_payload_size( 10 )
+                      .with_data( string( 10, 'b' ) )
+                      .with_seqno( isn + 11 ) );
+      test.execute( Push { string( 10, 'c' ) } );
+      test.execute( ExpectMessage {}
+                      .with_no_flags()
+                      .with_payload_size( 10 )
+                      .with_data( string( 10, 'c' ) )
+                      .with_seqno( isn + 21 ) );
+      test.execute( ExpectNoSegment {} );
+      test.execute( ExpectSeqno { isn + 31 } );
+      test.execute( ExpectSeqnosInFlight { 30 } );
+      // ack first segment
+      test.execute( AckReceived { Wrap32 { isn + 11 } }.with_win( 100 ) );
+      test.execute( ExpectSeqnosInFlight { 20 } );
+      test.execute( AckReceived { Wrap32 { isn + 21 } }.with_win( 100 ) );
+      test.execute( ExpectSeqnosInFlight { 10 } );
+      test.execute( AckReceived { Wrap32 { isn + 31 } }.with_win( 100 ) );
+      test.execute( ExpectSeqnosInFlight { 0 } ); // all acked
+      test.execute( ExpectNoSegment {} );
+    }
+
+    // Extra test created by Niklas Vainio (edited by KW)
+    {
+      TCPConfig cfg;
+      const Wrap32 isn( rd() );
+      cfg.isn = isn;
+
+      TCPSenderTestHarness test { "Outstanding bytes occupy space in the window", cfg };
+      test.execute( Push {} );
+      test.execute( ExpectMessage {}.with_no_flags().with_syn( true ).with_payload_size( 0 ).with_seqno( isn ) );
+      test.execute( Push( "abcdef" ) );
+      test.execute( ExpectNoSegment {} );
+      test.execute( ExpectSeqno { isn + 1 } );
+      test.execute( AckReceived { Wrap32 { isn + 1 } }.with_win( 3 ) );
+      test.execute( ExpectMessage {}.with_payload_size( 3 ).with_data( "abc" ).with_seqno( isn + 1 ) );
+      test.execute( ExpectNoSegment {} );
+      test.execute( ExpectSeqno { isn + 4 } );
+
+      test.execute( Push( "ghijkl" ) );
+      test.execute( ExpectNoSegment {} );
+      test.execute( AckReceived { Wrap32 { isn + 3 } }.with_win( 5 ) );
+      test.execute( ExpectMessage {}.with_payload_size( 2 ).with_data( "de" ).with_seqno( isn + 4 ) );
+      test.execute( ExpectNoSegment {} );
+    }
   } catch ( const exception& e ) {
     cerr << e.what() << "\n";
     return 1;

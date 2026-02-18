@@ -120,7 +120,7 @@ public:
     cerr << "Host " << _name << " trying to send datagram (with next hop = " << _next_hop.ip()
          << "): " << dgram.header.to_string() << +" payload=\"" + pretty_print( concat( dgram.payload ) ) + "\"\n";
 
-    _interface->send_datagram( dgram, _next_hop );
+    _interface->send_datagram( clone( dgram ), _next_hop );
 
     return dgram;
   }

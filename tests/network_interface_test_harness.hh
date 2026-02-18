@@ -56,7 +56,10 @@ struct SendDatagram : public Action<InterfaceAndOutput>
            + " payload=\"" + pretty_print( concat( dgram.payload ) ) + "\"";
   }
 
-  void execute( InterfaceAndOutput& interface ) const override { interface.first.send_datagram( dgram, next_hop ); }
+  void execute( InterfaceAndOutput& interface ) const override
+  {
+    interface.first.send_datagram( clone( dgram ), next_hop );
+  }
 
   SendDatagram( const InternetDatagram& d, Address n ) : dgram( clone( d ) ), next_hop( n ) {}
 };
