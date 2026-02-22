@@ -69,7 +69,7 @@ public:
   void send( const StringViewRange auto&& payloads, const std::optional<Address>& destination = {} )
   {
     static thread_local std::vector<iovec> iovecs;
-    size_t total_size = to_iovecs( payloads, iovecs );
+    const size_t total_size = to_iovecs( payloads, iovecs );
     send( iovecs, total_size, destination );
   }
 
