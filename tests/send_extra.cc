@@ -774,7 +774,7 @@ int main()
 
       test.execute( Push( "ghijkl" ) );
       test.execute( ExpectNoSegment {} );
-      test.execute( AckReceived { Wrap32 { isn + 3 } }.with_win( 5 ) );
+      test.execute( AckReceived { Wrap32 { isn + 1 } }.with_win( 5 ) );
       test.execute( ExpectMessage {}.with_payload_size( 2 ).with_data( "de" ).with_seqno( isn + 4 ) );
       test.execute( ExpectNoSegment {} );
     }
