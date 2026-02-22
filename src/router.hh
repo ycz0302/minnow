@@ -32,6 +32,15 @@ public:
   void route();
 
 private:
-  // The router's collection of network interfaces
+  void route_one_datagram( InternetDatagram& dgram );
+
+  struct Route {
+    uint32_t route_prefix;
+    uint8_t prefix_length;
+    std::optional<Address> next_hop;
+    size_t interface_num;
+  };
+
+  std::vector<Route> routing_table_ {};
   std::vector<std::shared_ptr<NetworkInterface>> interfaces_ {};
 };
