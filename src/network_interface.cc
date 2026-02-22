@@ -28,7 +28,7 @@ NetworkInterface::NetworkInterface( string_view name,
 //! \param[in] next_hop the IP address of the interface to send it to (typically a router or default gateway, but
 //! may also be another host if directly connected to the same network as the destination) Note: the Address type
 //! can be converted to a uint32_t (raw 32-bit IP address) by using the Address::ipv4_numeric() method.
-void NetworkInterface::send_datagram(InternetDatagram dgram, const Address& next_hop) {
+void NetworkInterface::send_datagram(const InternetDatagram &dgram, const Address& next_hop) {
   const uint32_t target_ip = next_hop.ipv4_numeric();
   // Check if we already know the MAC for this IP
   for (auto &i : this->ip_mac_table) {
@@ -125,13 +125,13 @@ void NetworkInterface::recv_frame(EthernetFrame frame) {
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method
 void NetworkInterface::tick(const size_t ms_since_last_tick) {
   for (auto &i : this->arp) {
-    i.second -= ms_since_last_tick;
+    i.second -= static_cast<int32_t>(ms_since_last_tick);
   }
   for (auto &i : this->ip_mac_table) {
-    i.second -= ms_since_last_tick;
+    i.second -= static_cast<int32_t>(ms_since_last_tick);
   }
   while (!this->arp.empty() && this->arp.front().second <= 0) {
-    uint32_t expired_ip = this->arp.front().first;
+    const uint32_t expired_ip = this->arp.front().first;
     // Drop any pending datagrams for this expired ARP request
     auto it = this->pending_datagrams.begin();
     while (it != this->pending_datagrams.end()) {

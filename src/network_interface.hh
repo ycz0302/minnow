@@ -49,7 +49,7 @@ public:
   // Sends an Internet datagram, encapsulated in an Ethernet frame (if it knows the Ethernet destination
   // address). Will need to use [ARP](\ref rfc::rfc826) to look up the Ethernet destination address for the next
   // hop. Sending is accomplished by calling `transmit()` (a member variable) on the frame.
-  void send_datagram( InternetDatagram dgram, const Address& next_hop );
+  void send_datagram(const InternetDatagram &dgram, const Address& next_hop);
 
   // Receives an Ethernet frame and responds appropriately.
   // If type is IPv4, pushes the datagram to the datagrams_in queue.
