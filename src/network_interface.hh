@@ -66,6 +66,12 @@ public:
   OutputPort& output() { return *port_; }
   std::queue<InternetDatagram>& datagrams_received() { return datagrams_received_; }
 
+  struct IP_MAC_NODE {
+    uint32_t ip;
+    EthernetAddress mac;
+    IP_MAC_NODE(uint32_t ip_, EthernetAddress mac_) : ip(ip_), mac(mac_) {}
+  };
+
 private:
   // Human-readable name of the interface
   std::string name_;
@@ -82,4 +88,10 @@ private:
 
   // Datagrams that have been received
   std::queue<InternetDatagram> datagrams_received_ {};
+
+  std::deque<std::pair<uint32_t, int32_t>> arp {};
+
+  std::deque<std::pair<IP_MAC_NODE, int32_t>> ip_mac_table {};
+
+  std::deque<std::pair<InternetDatagram, uint32_t>> pending_datagrams {};
 };
